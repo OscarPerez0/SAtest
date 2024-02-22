@@ -1,0 +1,33 @@
+---
+- hosts: nginx_ec2
+  become: yes
+  tasks:
+  - name: Actualizar repositorios -> "apt update"
+    apt: 
+        update-cache: yes
+  - name: Instalar Nginx -> "apt install nginx"
+    apt: name=nginx state=present
+  - name: Copiar sitio web React+Vite
+    copy:
+        src: /home/ubuntu/
+        dest: /var/www/sa_practica1
+        remote_src: true
+  - name: Crear archivo de configuración en Nginx para el sitio web copiado
+    copy:
+        dest: /etc/nginx/sites-enabled/sa_practica1
+        content: "server {
+                        listen 81;
+                        listen [::]:81;
+  
+                        #server_name example.ubuntu.com;
+
+                        root /var/www/sa_practica1;
+                        index index.html;
+
+                        location / {
+                                try_files $uri $uri/ =404;
+                        }
+                  }"
+  - name: Reiniciar servicio de Nginx
+    service: name=nginx state=reloaded
+...
